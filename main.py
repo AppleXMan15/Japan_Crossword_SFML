@@ -2,23 +2,44 @@ import tkinter
 from tkinter import *
 from tkinter import filedialog
 from PIL import Image, ImageTk
+import Start_Window
 
-def clicked():
-    file = filedialog.askopenfile()
-    if file is not None:
-        content = file.read()
-window = Tk()
-window.title("Тестовое окно на Python")
-window.geometry('400x250')
-btn = Button(window, text="Загрузить картинку", bg="lightgrey", fg="black", command=clicked)
-btn.pack(side=LEFT)
-spin = Spinbox(window, from_=0, to=100)
-spin.pack()
-frame = tkinter.Frame(window)
-frame.pack()
-image = Image.open("C:\Program Files\JetBrains\IMG_20220123_232540.jpg")
-canvas = tkinter.Canvas(frame, height=1076, width=1435)
-photo = ImageTk.PhotoImage(image)
-image = canvas.create_image(0, 0, anchor='nw', image=photo)
-canvas.grid(row=1, column=3)
-window.mainloop()
+class Root_win:
+    def __init__(self):
+        self.window = Tk()
+        self.window.title("Тестовое окно на Python")
+        self.window.geometry('400x250')
+
+        btn = Button(self.window, text="Загрузить картинку", bg="lightgrey", fg="black", command=self.upl_clicked)
+        btn.grid(row=1, column=1)
+
+        spin = Spinbox(self.window, from_=0, to=100)
+        spin.grid(row=2, column=1)
+
+        frame = tkinter.Frame(self.window)
+        frame.grid(row=1, column=2)
+
+        self.window.mainloop()
+
+    def Error_win(self):
+        Er_win = Tk()
+        Er_win.title("Ошибка загрузки")
+        Er_win.geometry('250x75')
+        Er_win.resizable(width=False, height=False)
+        lbl = Label(Er_win, text="\nЗагрузка файла не удалась.\nПопробуйте снова.")
+        lbl.pack()
+        Er_win.mainloop()
+
+    def upl_clicked(self):
+        file = filedialog.askopenfile()
+        if file is not None:
+            content = file.read()
+            canvas = tkinter.Canvas(self.frame, height=107, width=146)
+            photo = ImageTk.PhotoImage(content)
+            image = canvas.create_image(0, 0, anchor='nw', image=photo)
+            canvas.pack()
+        else:
+            self.Error_win()
+
+
+app = Root_win()
