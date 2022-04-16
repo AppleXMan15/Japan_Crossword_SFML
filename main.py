@@ -3,75 +3,114 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from PIL import Image, ImageTk, ImageDraw
-import Start_Window
 
-class Root_win:
+def Spin():  # редактор перехода
+    spn_win = Tk()
+    spn_win.title("Factor choosing")
+    spn_win.geometry('260x50')
+    spn_win.resizable(height=None, width=None)
+    spn_win.iconbitmap('YON.ico')
+    spin = Spinbox(spn_win, from_=-100, to=100)
+    apply_btn = Button(spn_win, text='Применить', command=lambda: window.Equal_f(spn_win, spin.get()))
+    spin.pack(anchor=CENTER)
+    apply_btn.pack(anchor=CENTER)
+    spn_win.mainloop()
+
+def Compression():
+    cmp_win = Tk()
+    cmp_win.title("Степень сжатия")
+    cmp_win.geometry('260x50')
+    cmp_win.resizable(height=None, width=None)
+    cmp_win.iconbitmap('YON.ico')
+    spin = Spinbox(cmp_win, from_=2, to=1000)
+    apply_btn = Button(cmp_win, text='Применить', command=lambda: window.Equal_c(cmp_win, spin.get()))
+    spin.pack(anchor=CENTER)
+    apply_btn.pack(anchor=CENTER)
+    cmp_win.mainloop()
+
+class Root_win(Tk):
+    invert_btn_value = False
+    factor = 50
+    cmp = 1
     def __init__(self):
-        self.window = Tk()
-        self.window.title("Your Own Nonogram")   #название окна
-        self.window.geometry('400x250')    #размеры окна
-        self.window.iconbitmap('YON.ico')    #ставим иконку для окна
+        super().__init__()
 
-        mainmenu = Menu(self.window)
-        self.window.config(menu=mainmenu)
-
-        invert_btn = IntVar()
-        filemenu = Menu(mainmenu, tearoff=0)
-        filemenu.add_command(label="Загрузить картинку", command=self.upl_clicked)
-        filemenu.add_checkbutton(label='Инвертировать картинку', variable=invert_btn, onvalue=1, offvalue=0)
-        filemenu.add_separator()
-        filemenu.add_command(label="Выход", command=self.window.destroy)
-
-        helpmenu = Menu(mainmenu, tearoff=0)
-        helpmenu.add_command(label="Помощь")
-        helpmenu.add_command(label="О программе")
-
-        mainmenu.add_cascade(label="Файл",
-                             menu=filemenu)
-        mainmenu.add_cascade(label="Справка",
-                             menu=helpmenu)
-
-        self.invert_btn_value = invert_btn.get
-
-        spin = Spinbox(self.window, from_=-100, to=100)
-        spin.grid(row=2, column=1)
-
-        self.window.mainloop()
+    def Inverting(self):
+        self.invert_btn_value = not self.invert_btn_value
 
     def Error_win(self):  #ошибка загрузки
         answer = messagebox.showerror(
             "Ошибка!",
             "Не удалось открыть файл. Попробуйте снова.")
 
-    def upl_clicked(self):
-        file = filedialog.askopenfilename()
-        if file is not None:
-            #if not self.invert_btn_value:
-            white, black = 255, 0
-            #else:
-            #    white, black = 0, 255
+    def Equal_c(self, win, x):
+        self.cmp = x
+        win.destroy()
+
+    def Equal_f(self, win, num):
+        self.factor = int(num)
+        win.destroy()
+
+    def upl_clicked(self):  # загрузка картинки
+        file = filedialog.askopenfilename(filetypes=[("Image files",
+                                                      "*.jpg; *.jpeg; *.png; *.bmp; *.raw; *.gif; *.tiff")])
+        if file != '':
+            if not self.invert_btn_value:
+                white, black = 255, 0
+            else:
+                white, black = 0, 255
             image = Image.open(file)
             draw = ImageDraw.Draw(image)
             width = image.size[0]  # Определяем ширину.
             height = image.size[1]  # Определяем высоту.
             pix = image.load()  #массив пикселей
-            factor = 50  #регулировка перехода
             for i in range(width):
                 for j in range(height):
                     a = pix[i, j][0]
                     b = pix[i, j][1]
                     c = pix[i, j][2]
                     S = a + b + c
-                    if (S > (((255 + factor) // 2) * 3)):  #распределение пикселей на черные и белые
+                    if S > ((255 + self.factor) // 2) * 3:  #распределение пикселей на черные и белые
                         a, b, c = white, white, white
                     else:
                         a, b, c = black, black, black
                     draw.point((i, j), (a, b, c))
-
-            panel = Label(self.window, image=ImageTk.PhotoImage(image))  #вывод изображения
-            panel.grid(row=3, column=2)
             image.show()
         else:
             self.Error_win()
 
-app = Root_win()
+
+if __name__ == '__main__':
+    window = Root_win()
+    window.title("Your Own Nonogram")  # название окна
+    window.geometry('458x458')  # размеры окна
+    window.iconbitmap('YON.ico')  # иконка для окна
+
+    mainmenu = Menu(window)
+    window.config(menu=mainmenu)
+
+    filemenu = Menu(mainmenu, tearoff=0)
+    filemenu.add_command(label="Загрузить картинку",
+                         command=window.upl_clicked)
+    filemenu.add_checkbutton(label='Инвертировать картинку',
+                             command=window.Inverting)
+    filemenu.add_separator()
+    filemenu.add_command(label="Выход",
+                         command=window.destroy)
+
+    helpmenu = Menu(mainmenu, tearoff=0)
+    helpmenu.add_command(label="Помощь")
+    helpmenu.add_command(label="О программе")
+
+    mainmenu.add_cascade(label="Файл",
+                         menu=filemenu)
+    mainmenu.add_command(label="Переход", command=Spin)
+    mainmenu.add_command(label='Сжатие', command=Compression)
+    mainmenu.add_cascade(label="Справка",
+                         menu=helpmenu)
+    image = Image.open("Plug_image.jpg")
+    #canvas = tkinter.Canvas(window, height=image.height, width=image.width)
+    #photo = ImageTk.PhotoImage(image)
+    #canvas.create_image(0, 0, anchor='nw', image=photo)
+    #canvas.pack(anchor=CENTER)
+    window.mainloop()
