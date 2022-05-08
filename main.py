@@ -38,23 +38,28 @@ class Root_win(Tk):
     def Inverting(self):
         self.invert_btn_value = not self.invert_btn_value
 
-    def Error_win(self):  #ошибка загрузки
+    def Error_upload(self):  #ошибка загрузки
         answer = messagebox.showerror(
             "Ошибка!",
             "Не удалось открыть файл. Попробуйте снова.")
 
-    def Equal_c(self, win, x):
-        self.cmp = x
+    def Error_cmp(self):
+        answer = messagebox.showerror(
+            "Ошибка!",
+            "Шаг сжатия больше размеров изображения. Уменьшите сжатие и попробуйте снова.")
+
+    def Equal_c(self, win, x):  # установка степени сжатия
+        self.cmp = int(x)
         win.destroy()
 
-    def Equal_f(self, win, num):
+    def Equal_f(self, win, num):  # установка перехода
         self.factor = int(num)
         win.destroy()
 
     def upl_clicked(self):  # загрузка картинки
         file = filedialog.askopenfilename(filetypes=[("Image files",
                                                       "*.jpg; *.jpeg; *.png; *.bmp; *.raw; *.gif; *.tiff")])
-        if file != '':
+        try:
             if not self.invert_btn_value:
                 white, black = 255, 0
             else:
@@ -63,22 +68,23 @@ class Root_win(Tk):
             draw = ImageDraw.Draw(image)
             width = image.size[0]  # Определяем ширину.
             height = image.size[1]  # Определяем высоту.
-            pix = image.load()  #массив пикселей
+            if self.cmp > min(width, height):
+                self.Error_cmp()
+            pix = image.load()  # массив пикселей
             for i in range(width):
                 for j in range(height):
                     a = pix[i, j][0]
                     b = pix[i, j][1]
                     c = pix[i, j][2]
                     S = a + b + c
-                    if S > ((255 + self.factor) // 2) * 3:  #распределение пикселей на черные и белые
+                    if S > ((255 + self.factor) // 2) * 3:  # распределение пикселей на черные и белые
                         a, b, c = white, white, white
                     else:
                         a, b, c = black, black, black
                     draw.point((i, j), (a, b, c))
             image.show()
-        else:
-            self.Error_win()
-
+        except AttributeError:
+            self.Error_upload()
 
 if __name__ == '__main__':
     window = Root_win()
@@ -108,7 +114,7 @@ if __name__ == '__main__':
     mainmenu.add_command(label='Сжатие', command=Compression)
     mainmenu.add_cascade(label="Справка",
                          menu=helpmenu)
-    image = Image.open("Plug_image.jpg")
+    #image = Image.open("Plug_image.jpg")
     #canvas = tkinter.Canvas(window, height=image.height, width=image.width)
     #photo = ImageTk.PhotoImage(image)
     #canvas.create_image(0, 0, anchor='nw', image=photo)
